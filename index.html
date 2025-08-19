@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Astrologer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .result h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .question-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e1e5e9;
+        }
+        
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ AI Astrologer ✨</h1>
+            <p>Discover your cosmic insights with AI-powered astrology</p>
+        </div>
+        
+        <div class="card">
+            <form id="birthForm">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="birthDate">Birth Date</label>
+                        <input type="date" id="birthDate" name="birthDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="birthTime">Birth Time</label>
+                        <input type="time" id="birthTime" name="birthTime" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="birthPlace">Birth Place (City, Country)</label>
+                    <input type="text" id="birthPlace" name="birthPlace" required placeholder="e.g., New York, USA">
+                </div>
+                
+                <button type="submit" class="btn" id="generateBtn">
+                    Generate Astrology Reading
+                </button>
+            </form>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Consulting the stars... This may take a moment.</p>
+            </div>
+            
+            <div id="result" class="result" style="display: none;">
+                <h3>Your Astrology Reading</h3>
+                <div id="readingContent"></div>
+            </div>
+            
+            <div id="error" class="error" style="display: none;"></div>
+            
+            <div id="questionSection" class="question-section" style="display: none;">
+                <h3>Ask a Question</h3>
+                <div class="form-group">
+                    <label for="question">What would you like to know about your cosmic profile?</label>
+                    <textarea id="question" name="question" rows="3" placeholder="e.g., What does my birth chart say about my career? What are my relationship strengths?"></textarea>
+                </div>
+                <button type="button" class="btn" id="askBtn">
+                    Get Answer
+                </button>
+                <div id="answerResult" class="result" style="display: none;">
+                    <h3>Your Answer</h3>
+                    <div id="answerContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000'; // Backend URL
+        
+        let userBirthData = null;
+        
+        document.getElementById('birthForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            userBirthData = {
+                name: formData.get('name'),
+                birthDate: formData.get('birthDate'),
+                birthTime: formData.get('birthTime'),
+                birthPlace: formData.get('birthPlace')
+            };
+            
+            await generateReading(userBirthData);
+        });
+        
+        document.getElementById('askBtn').addEventListener('click', async () => {
+            const question = document.getElementById('question').value.trim();
+            if (!question) {
+                alert('Please enter a question.');
+                return;
+            }
+            
+            await askQuestion(userBirthData, question);
+        });
+        
+        async function generateReading(birthData) {
+            showLoading(true);
+            hideError();
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/generate-reading`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(birthData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayReading(data.reading);
+                    document.getElementById('questionSection').style.display = 'block';
+                } else {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Failed to generate reading: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function askQuestion(birthData, question) {
+            const askBtn = document.getElementById('askBtn');
+            const originalText = askBtn.textContent;
+            askBtn.textContent = 'Thinking...';
+            askBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/ask-question`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...birthData,
+                        question: question
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayAnswer(data.answer);
+                } else {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Failed to get answer: ${error.message}`);
+            } finally {
+                askBtn.textContent = originalText;
+                askBtn.disabled = false;
+            }
+        }
+        
+        function displayReading(reading) {
+            document.getElementById('readingContent').innerHTML = reading.replace(/\n/g, '<br>');
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        function displayAnswer(answer) {
+            document.getElementById('answerContent').innerHTML = answer.replace(/\n/g, '<br>');
+            document.getElementById('answerResult').style.display = 'block';
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('generateBtn').disabled = show;
+        }
+        
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+        
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
